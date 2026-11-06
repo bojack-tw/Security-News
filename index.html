@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Security News 案卷庫</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&display=swap">
+<style>
+:root{
+  --paper:#E9EDF1; --sheet:#FBFCFD; --ink:#15202B; --muted:#56636F; --rule:#C9D1D9; --soft:#F1F4F7;
+  --tag:#B4650F; --crit:#B42318; --crit-bg:#FDECEA;
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-data:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#0E151C; --sheet:#151F29; --ink:#E3E9EF; --muted:#93A0AC; --rule:#2A3845; --soft:#1B2732;
+  --tag:#E39A45; --crit:#F97066; --crit-bg:#3A1714; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.75}
+.wrap{max-width:880px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{background:var(--sheet);border-bottom:1px solid var(--rule)}
+header .wrap{padding-block:48px 32px;display:grid;gap:10px}
+h1{font-family:var(--f-display);font-weight:900;font-size:clamp(1.9rem,5vw,2.8rem);margin:0;line-height:1.25}
+header p{margin:0;color:var(--muted);max-width:40em}
+main .wrap{padding-block:32px 64px;display:grid;gap:16px}
+.count{font-size:.85rem;color:var(--muted)}
+a.case{display:grid;grid-template-columns:auto 1fr;gap:4px 20px;text-decoration:none;color:inherit;background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:20px 22px}
+a.case:hover{border-color:var(--ink)}
+a.case:focus-visible{outline:2px solid var(--tag);outline-offset:2px}
+.date{font-family:var(--f-data);font-size:.85rem;color:var(--tag);font-weight:600;grid-row:span 3;padding-top:4px}
+.case h2{font-family:var(--f-display);font-size:1.3rem;margin:0;line-height:1.35}
+.case p{margin:0;color:var(--muted);font-size:.94rem}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tags span{font-size:.75rem;border:1px solid var(--rule);border-radius:999px;padding:0 9px;color:var(--muted)}
+.tags .sev{color:var(--crit);background:var(--crit-bg);border-color:transparent;font-weight:700}
+footer{color:var(--muted);font-size:.82rem;padding-bottom:40px}
+@media (max-width:520px){a.case{grid-template-columns:1fr}.date{grid-row:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Security News 案卷庫</h1>
+    <p>重大資安事件的鑑識分析整理，每份報告包含時間軸、攻擊鏈、IOC、ATT&amp;CK 對應與修補檢核。</p>
+  </div>
+</header>
+<main>
+  <div class="wrap">
+    <p class="count">共 1 份報告</p>
+    <a class="case" href="reports/sterling-bank-forensics.html">
+      <span class="date">2026-03-18</span>
+      <h2>Sterling Bank 入侵事件鑑識分析</h2>
+      <p>攻擊者利用未修補的 CVE-2025-55182 進入試營運主機，潛伏 9 天，取得核心銀行 API 與關係企業資料庫存取權，聲稱外洩約 90 萬客戶帳戶。</p>
+      <div class="tags"><span class="sev">嚴重</span><span>銀行</span><span>奈及利亞</span><span>CVE-2025-55182</span><span>Sliver C2</span><span>Kubernetes</span></div>
+    </a>
+  </div>
+</main>
+<footer><div class="wrap">報告內容整理自公開來源，各頁皆註明出處。</div></footer>
+</body>
+</html>

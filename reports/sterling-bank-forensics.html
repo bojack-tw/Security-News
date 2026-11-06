@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Sterling Bank 入侵鑑識報告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&display=swap">
+<style>
+/* Layout: case-file sheet on cool evidence-grey paper; left-aligned single column, sticky section index; hero = to-scale 9-day dwell-time track */
+:root{
+  --paper:#E9EDF1; --sheet:#FBFCFD; --ink:#15202B; --muted:#56636F; --rule:#C9D1D9; --soft:#F1F4F7;
+  --tag:#B4650F; --tag-ink:#FFFFFF;
+  --crit:#B42318; --high:#B54708; --med:#7A6400; --low:#2E6B4F;
+  --crit-bg:#FDECEA; --high-bg:#FEF0E3; --med-bg:#FBF5DC; --low-bg:#E6F3EC;
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-data:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0E151C; --sheet:#151F29; --ink:#E3E9EF; --muted:#93A0AC; --rule:#2A3845; --soft:#1B2732;
+  --tag:#E39A45; --tag-ink:#1A1206;
+  --crit:#F97066; --high:#F59E4B; --med:#E2C25A; --low:#6CC49A;
+  --crit-bg:#3A1714; --high-bg:#3A230F; --med-bg:#332B0E; --low-bg:#12301F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0E151C; --sheet:#151F29; --ink:#E3E9EF; --muted:#93A0AC; --rule:#2A3845; --soft:#1B2732;
+  --tag:#E39A45; --tag-ink:#1A1206;
+  --crit:#F97066; --high:#F59E4B; --med:#E2C25A; --low:#6CC49A;
+  --crit-bg:#3A1714; --high-bg:#3A230F; --med-bg:#332B0E; --low-bg:#12301F; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.75;margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--sheet)}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--tag);outline-offset:2px;border-radius:2px}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.3;margin:0}
+h2{font-size:1.6rem;font-weight:900}
+h3{font-size:1.15rem;font-weight:600}
+p{margin:0}
+.num{font-variant-numeric:tabular-nums}
+code,.mono{font-family:var(--f-data);font-size:.86em}
+
+/* index bar */
+.index{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--sheet);border-bottom:1px solid var(--rule)}
+.index .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-block:8px}
+.index a{flex:none;text-decoration:none;font-size:.85rem;color:var(--muted);padding:4px 10px;border-radius:999px}
+.index a:hover,.index a.on{color:var(--ink);background:var(--soft)}
+
+/* hero */
+header.case{background:var(--sheet);border-bottom:1px solid var(--rule)}
+header.case .wrap{padding-block:40px 32px;display:grid;gap:22px}
+.stamp{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.85rem;color:var(--muted)}
+.stamp b{color:var(--ink);font-weight:500}
+.tagchip{display:inline-block;background:var(--tag);color:var(--tag-ink);font-weight:700;font-size:.8rem;padding:2px 10px;border-radius:3px;letter-spacing:.04em}
+h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:900;letter-spacing:.01em}
+.lede{max-width:44em;font-size:1.08rem;color:var(--ink)}
+.facts{display:flex;flex-wrap:wrap;gap:10px 32px}
+.facts div{display:grid}
+.facts dt{font-size:.8rem;color:var(--muted)}
+.facts dd{margin:0;font-family:var(--f-data);font-size:1.25rem;font-weight:600}
+
+/* dwell track */
+.dwell{border:1px solid var(--rule);border-radius:6px;background:var(--paper)}
+.dwell-head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;padding:12px 16px 0;font-size:.88rem;color:var(--muted)}
+.dwell-head strong{color:var(--ink);font-family:var(--f-display);font-size:1.05rem}
+.track-scroll{overflow-x:auto;padding:0 16px}
+.track{position:relative;min-width:720px;height:150px}
+.axis{position:absolute;left:0;right:0;top:96px;height:2px;background:var(--rule)}
+.blind{position:absolute;top:92px;height:10px;background:repeating-linear-gradient(135deg,var(--crit) 0 6px,transparent 6px 11px);opacity:.55;border-radius:2px}
+.span{position:absolute;top:104px;height:6px;background:var(--muted);opacity:.45;border-radius:3px}
+.tick{position:absolute;top:110px;font-family:var(--f-data);font-size:.72rem;color:var(--muted);transform:translateX(-50%)}
+.tick::before{content:"";position:absolute;left:50%;top:-14px;width:1px;height:8px;background:var(--rule)}
+.ev{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;background:none;border:0;padding:0;cursor:pointer;color:var(--ink);font:inherit}
+.ev .lbl{font-size:.74rem;white-space:nowrap;padding:2px 7px;border-radius:3px;background:var(--sheet);border:1px solid var(--rule);line-height:1.4}
+.ev .stem{width:1px;background:var(--muted)}
+.ev .dot{width:14px;height:14px;border-radius:50%;background:var(--sheet);border:3px solid var(--ink)}
+.ev.crit .dot{border-color:var(--crit)}
+.ev[aria-pressed="true"] .lbl{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.ev[aria-pressed="true"] .dot{background:var(--tag);border-color:var(--tag)}
+.ev-detail{border-top:1px solid var(--rule);padding:14px 16px 16px;display:grid;grid-template-columns:auto 1fr;gap:4px 16px;align-items:baseline}
+.ev-detail .when{font-family:var(--f-data);font-size:.85rem;color:var(--tag);font-weight:600}
+.ev-detail h3{font-size:1.05rem}
+.ev-detail p{grid-column:2;color:var(--muted);font-size:.95rem}
+.legend{display:flex;gap:16px;flex-wrap:wrap;padding:0 16px 12px;font-size:.78rem;color:var(--muted)}
+.legend i{display:inline-block;width:18px;height:8px;margin-right:6px;vertical-align:middle;border-radius:2px}
+
+/* sections */
+main section{padding-block:56px 8px}
+.sec-head{display:grid;gap:8px;margin-bottom:22px;max-width:46em}
+.sec-head p{color:var(--muted)}
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:6px}
+
+/* tables */
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:500;color:var(--muted);font-size:.82rem;background:var(--soft)}
+tr:last-child td{border-bottom:0}
+.sev{display:inline-block;font-size:.75rem;font-weight:700;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.sev.crit{color:var(--crit);background:var(--crit-bg)}
+.sev.high{color:var(--high);background:var(--high-bg)}
+.sev.med{color:var(--med);background:var(--med-bg)}
+.sev.low{color:var(--low);background:var(--low-bg)}
+
+/* kill chain */
+.chain{display:flex;overflow-x:auto;border-bottom:1px solid var(--rule)}
+.chain button{flex:1 0 auto;background:none;border:0;border-bottom:3px solid transparent;padding:12px 16px 10px;text-align:left;cursor:pointer;color:var(--muted);font:inherit;font-size:.9rem;display:grid;gap:0;min-width:120px}
+.chain button span{font-family:var(--f-data);font-size:.72rem}
+.chain button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--tag);font-weight:700}
+.chain button:hover{color:var(--ink)}
+.stage{padding:22px 20px 24px;display:grid;gap:16px}
+.stage>p{max-width:46em}
+.kv{display:grid;grid-template-columns:minmax(120px,190px) 1fr;border:1px solid var(--rule);border-radius:4px;font-size:.9rem}
+.kv dt,.kv dd{margin:0;padding:8px 12px;border-bottom:1px solid var(--rule);min-width:0;overflow-wrap:anywhere}
+.kv dt{color:var(--muted);background:var(--soft)}
+.kv dt:last-of-type,.kv dd:last-of-type{border-bottom:0}
+pre{margin:0;background:var(--soft);border:1px solid var(--rule);border-radius:4px;padding:12px 14px;overflow-x:auto;font-family:var(--f-data);font-size:.8rem;line-height:1.6}
+.callout{border-left:3px solid var(--crit);padding:4px 0 4px 14px;color:var(--ink)}
+.callout b{color:var(--crit)}
+
+/* port chart */
+.ports{display:grid;gap:4px;padding:18px 20px}
+.port{display:grid;grid-template-columns:62px 1fr;gap:12px;align-items:center;background:none;border:0;padding:4px 6px;border-radius:4px;cursor:pointer;font:inherit;color:inherit;text-align:left}
+.port:hover,.port[aria-pressed="true"]{background:var(--soft)}
+.port .pn{font-family:var(--f-data);font-size:.85rem;font-weight:600}
+.bar-row{display:flex;align-items:center;gap:8px;min-width:0}
+.bar{height:16px;border-radius:2px;min-width:3px}
+.bar.std{background:var(--muted);opacity:.55}
+.bar.med{background:var(--med)}
+.bar.high{background:var(--high)}
+.bar.crit{background:var(--crit)}
+.bar-row .c{font-family:var(--f-data);font-size:.8rem;color:var(--muted)}
+.port-note{border-top:1px solid var(--rule);padding:14px 20px;font-size:.93rem;min-height:3.4em}
+.port-note b{font-family:var(--f-data)}
+
+/* IOC */
+.ioc-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--rule)}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:999px;padding:4px 12px;font:inherit;font-size:.82rem;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+input[type="search"]{flex:1 1 180px;min-width:0;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:4px;padding:6px 10px;font:inherit;font-size:.9rem}
+.switch{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);cursor:pointer}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--sheet);border-radius:4px;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule);padding:2px 9px;font-size:.78rem}
+.ioc td.v{font-family:var(--f-data);font-size:.84rem;overflow-wrap:anywhere;min-width:200px}
+.ioc .typ{font-size:.78rem;color:var(--muted);white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--sheet);padding:8px 16px;border-radius:4px;font-size:.88rem;z-index:20}
+
+/* root cause */
+.causes{display:grid;gap:0}
+.cause{border-bottom:1px solid var(--rule)}
+.cause:last-child{border-bottom:0}
+.cause summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:2.2em 1fr auto;gap:12px;align-items:baseline;padding:14px 18px}
+.cause summary::-webkit-details-marker{display:none}
+.cause summary .n{font-family:var(--f-display);font-weight:900;font-size:1.3rem;color:var(--tag)}
+.cause summary .t{font-weight:700}
+.cause summary .ar{color:var(--muted);font-size:.8rem;transition:transform .2s}
+.cause[open] summary .ar{transform:rotate(90deg)}
+.cause .body{padding:0 18px 16px calc(18px + 2.2em + 12px);color:var(--muted);font-size:.94rem;display:grid;gap:6px}
+.cause .body b{color:var(--ink);font-weight:500}
+
+/* regulatory */
+.reg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.reg .sheet{padding:18px 20px;display:grid;gap:12px;align-content:start}
+.reg ul{margin:0;padding-left:1.1em;display:grid;gap:6px;font-size:.93rem}
+
+/* checklist */
+.prog{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.prog .meter{flex:1 1 200px;height:8px;background:var(--soft);border-radius:4px;overflow:hidden;border:1px solid var(--rule)}
+.prog .fill{height:100%;background:var(--low);width:0;transition:width .3s}
+.prog .lbl{font-family:var(--f-data);font-size:.85rem}
+.phase{padding:16px 20px;border-bottom:1px solid var(--rule)}
+.phase:last-child{border-bottom:0}
+.phase h3{display:flex;gap:10px;align-items:baseline;margin-bottom:10px}
+.phase h3 small{font-family:var(--f-body);font-weight:400;font-size:.8rem;color:var(--muted)}
+.phase label{display:grid;grid-template-columns:20px 1fr;gap:10px;padding:6px 0;font-size:.94rem;cursor:pointer}
+.phase input{margin-top:6px;accent-color:var(--low);width:16px;height:16px}
+.phase input:checked+span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--rule)}
+.phase .ours{display:inline-block;font-size:.72rem;color:var(--tag);border:1px solid var(--tag);border-radius:3px;padding:0 5px;margin-left:6px;vertical-align:1px;text-decoration:none}
+
+footer{padding-block:48px 56px;color:var(--muted);font-size:.85rem}
+footer .wrap{display:grid;gap:8px;max-width:1040px}
+@media (max-width:560px){
+  .kv{grid-template-columns:1fr}
+  .kv dt{border-bottom:0;padding-bottom:2px}
+  .cause .body{padding-left:18px}
+  .ev-detail{grid-template-columns:1fr}
+  .ev-detail p{grid-column:1}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+section{scroll-margin-top:60px}
+</style>
+</head>
+<body>
+
+
+<nav class="index" aria-label="章節索引">
+  <div class="wrap" id="navlinks">
+    <a href="#top">概要</a>
+    <a href="#findings">關鍵發現</a>
+    <a href="#chain">攻擊鏈</a>
+    <a href="#ports">內網掃描</a>
+    <a href="#ioc">IOC</a>
+    <a href="#attack">ATT&amp;CK</a>
+    <a href="#rca">根本原因</a>
+    <a href="#reg">法遵</a>
+    <a href="#fix">修補清單</a>
+  </div>
+</nav>
+
+<header class="case" id="top">
+  <div class="wrap">
+    <div class="stamp">
+      <span class="tagchip">已證實</span>
+      <span>來源 <b>Web Security Lab</b></span>
+      <span>分析者 <b>David Odes</b></span>
+      <span>發布 <b class="num">2026-04-08</b></span>
+      <span>分類 <b>公開（Public）</b></span>
+    </div>
+    <h1>Sterling Bank 入侵事件鑑識分析</h1>
+    <p class="lede">2026 年 3 月 18 日，化名 ByteToBreach 的攻擊者利用已有修補的 CVE-2025-55182，在奈及利亞 Sterling Bank 對外開放的「試營運」主機取得未授權遠端執行權限。之後 9 天內，攻擊者在 OpenShift 叢集內植入後門、竊取加密金鑰、呼叫核心銀行 API，並橫向進入關係企業 Cardinal Stone Partners 的資料庫，直到自己在暗網論壇公開成果，銀行端都沒有偵測紀錄。</p>
+    <dl class="facts">
+      <div><dt>聲稱外洩客戶帳戶</dt><dd class="num">≈900,000</dd></div>
+      <div><dt>員工 IAM 紀錄</dt><dd class="num">3,009</dd></div>
+      <div><dt>內網開放服務</dt><dd class="num">168</dd></div>
+      <div><dt>未被偵測天數</dt><dd class="num">9</dd></div>
+    </dl>
+
+    <div class="dwell">
+      <div class="dwell-head">
+        <strong>潛伏時間軸</strong>
+        <span>點選事件查看細節 · 時間為 GMT（拉哥斯 +1）</span>
+      </div>
+      <div class="track-scroll">
+        <div class="track" id="track" role="group" aria-label="攻擊事件時間軸"></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:repeating-linear-gradient(135deg,var(--crit) 0 4px,transparent 4px 7px)"></i>無偵測期間</span>
+        <span><i style="background:var(--muted);opacity:.45"></i>持續性活動</span>
+      </div>
+      <div class="ev-detail" id="evDetail" aria-live="polite"></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="findings">
+  <div class="sec-head">
+    <h2>關鍵發現</h2>
+    <p>WSL 依攻擊者公開的截圖與資料檔獨立比對，確認攻擊者的說法在技術上成立。嚴重度為本報告依影響範圍所做的分級。</p>
+  </div>
+  <div class="sheet tbl-wrap">
+    <table>
+      <thead><tr><th>項目</th><th>發現</th><th>嚴重度</th></tr></thead>
+      <tbody>
+        <tr><td>初始存取</td><td>CVE-2025-55182，React 框架未授權 RCE；公開已知且已有修補</td><td><span class="sev crit">嚴重</span></td></tr>
+        <tr><td>持久化</td><td>Sliver C2，以 MTLS 經 443 埠回連 <code>152.32.180.243</code></td><td><span class="sev crit">嚴重</span></td></tr>
+        <tr><td>內部攻擊面</td><td>172.27.0.0/16 共 168 個開放服務，含正式環境 Pod 內的開發伺服器</td><td><span class="sev high">高</span></td></tr>
+        <tr><td>加密失效</td><td>AES 金鑰與 IV 寫死在 Next.js 前端程式包</td><td><span class="sev crit">嚴重</span></td></tr>
+        <tr><td>核心銀行</td><td>Temenos T24 SOAP API 未做客戶層級授權即可呼叫</td><td><span class="sev crit">嚴重</span></td></tr>
+        <tr><td>徵信機構</td><td>CRC 徵信 API 只要 BVN 即回傳完整信用檔案</td><td><span class="sev high">高</span></td></tr>
+        <tr><td>第三方</td><td>Cardinal Stone Partners phpMyAdmin 管理員權限，整個投資資料庫外露</td><td><span class="sev crit">嚴重</span></td></tr>
+        <tr><td>法遵</td><td>奈及利亞《資料保護法》NDP Act 2023</td><td><span class="sev high">高</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="chain">
+  <div class="sec-head">
+    <h2>攻擊鏈重建</h2>
+    <p>依攻擊順序分成七個階段。可用方向鍵切換。</p>
+  </div>
+  <div class="sheet">
+    <div class="chain" role="tablist" aria-label="攻擊階段" id="chainTabs"></div>
+    <div id="chainPanels"></div>
+  </div>
+</section>
+
+<section id="ports">
+  <div class="sec-head">
+    <h2>內網掃描結果</h2>
+    <p>攻擊者掃描 172.27.0.0/16，發現 168 個開放服務。長條長度依數量等比例繪製，點選查看風險評估。</p>
+  </div>
+  <div class="sheet">
+    <div class="ports" id="portChart"></div>
+    <div class="port-note" id="portNote" aria-live="polite"></div>
+  </div>
+</section>
+
+<section id="ioc">
+  <div class="sec-head">
+    <h2>入侵指標（IOC）</h2>
+    <p>全部取自攻擊者公開的截圖與資料檔。預設以「去武裝」格式顯示，避免誤點；匯入 SIEM 或防火牆前請切換回原始值。</p>
+  </div>
+  <div class="sheet">
+    <div class="ioc-tools">
+      <div class="chips" id="iocChips" role="group" aria-label="指標類型"></div>
+      <input type="search" id="iocSearch" placeholder="搜尋 IP、檔名、主機名稱…" aria-label="搜尋 IOC">
+      <label class="switch"><input type="checkbox" id="defang" checked> 去武裝顯示</label>
+      <button class="btn" id="copyAll">複製目前清單</button>
+    </div>
+    <div class="tbl-wrap">
+      <table class="ioc">
+        <thead><tr><th>指標</th><th>類型</th><th>說明</th><th><span class="sr">複製</span></th></tr></thead>
+        <tbody id="iocBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="attack">
+  <div class="sec-head">
+    <h2>MITRE ATT&amp;CK 對應</h2>
+    <p>原報告列出的技術對應，可直接用於偵測規則盤點。</p>
+  </div>
+  <div class="sheet tbl-wrap">
+    <table>
+      <thead><tr><th>戰術階段</th><th>技術</th><th>ID</th><th>本案證據</th></tr></thead>
+      <tbody>
+        <tr><td>初始存取</td><td>Exploit Public-Facing Application</td><td class="mono">T1190</td><td>CVE-2025-55182 攻擊 enf-pilot.sterling.ng</td></tr>
+        <tr><td>執行</td><td>Command and Scripting Interpreter</td><td class="mono">T1059</td><td>Node.js 腳本用於解密與列舉</td></tr>
+        <tr><td>指揮控制</td><td>Encrypted Channel：Asymmetric</td><td class="mono">T1573.002</td><td>Sliver MTLS 443 埠回連</td></tr>
+        <tr><td>探索</td><td>Account Discovery</td><td class="mono">T1087</td><td>GetUserByUsername 無速率限制列舉</td></tr>
+        <tr><td>憑證存取</td><td>Unsecured Credentials</td><td class="mono">T1552</td><td>前端程式包內的 AES 金鑰</td></tr>
+        <tr><td>蒐集</td><td>Data from Information Repositories</td><td class="mono">T1213</td><td>Swagger 文件、活動紀錄、T24 SOAP API</td></tr>
+        <tr><td>外洩</td><td>Exfiltration Over C2 Channel</td><td class="mono">T1041</td><td>資料經 Sliver session 回傳</td></tr>
+        <tr><td>橫向移動</td><td>原報告標示為 T1534</td><td class="mono">T1534</td><td>Sterling Bank → Cardinal Stone 跳轉</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:10px;font-size:.85rem;color:var(--muted)">註：ATT&amp;CK 中 T1534 原意為 Internal Spearphishing。本案的網段跳轉較接近 T1210（Exploitation of Remote Services）或 T1021（Remote Services），建置偵測規則時建議以後者為準。</p>
+</section>
+
+<section id="rca">
+  <div class="sec-head">
+    <h2>根本原因分析</h2>
+    <p>五個各自獨立的失誤，任何一個被補上，都足以阻止或大幅限縮這次入侵。點選展開。</p>
+  </div>
+  <div class="sheet causes" id="causes"></div>
+</section>
+
+<section id="reg">
+  <div class="sec-head">
+    <h2>法遵影響</h2>
+    <p>兩套主要規範下的義務狀態，以原報告發布時資訊為準。</p>
+  </div>
+  <div class="reg">
+    <div class="sheet">
+      <h3>奈及利亞資料保護法（NDP Act 2023）</h3>
+      <div class="tbl-wrap">
+      <table>
+        <tbody>
+          <tr><td>72 小時內通報 NDPC</td><td><span class="sev crit">已觸發</span> 3/27 公開，至 3/29 未見通報</td></tr>
+          <tr><td>適當技術安全措施</td><td><span class="sev crit">違反</span></td></tr>
+          <tr><td>通知當事人</td><td><span class="sev crit">未履行</span> 約 90 萬人未獲通知</td></tr>
+          <tr><td>可能罰則</td><td>年營收 2% 或每類違規 ₦10,000,000</td></tr>
+          <tr><td>監理動作</td><td><span class="sev med">進行中</span> NDPC 於 2026-04-05 宣布調查</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <div class="sheet">
+      <h3>奈及利亞央行資安框架（CBN 2022）</h3>
+      <p style="font-size:.94rem;color:var(--muted)">要求持牌銀行建立以下計畫，本案記錄的缺失與各項皆不一致：</p>
+      <ul>
+        <li>弱點管理與修補管理</li>
+        <li>事件偵測與應變</li>
+        <li>第三方風險管理</li>
+        <li>重大資安事件須在規定時限內通報 CBN，截至報告發布時是否已通報不明</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="fix">
+  <div class="sec-head">
+    <h2>修補與檢核清單</h2>
+    <p>原報告建議依時程分三階段。標示「自我檢核」的項目是本報告延伸的同業檢核點，方便金融機構對照自家環境。勾選狀態只存在你的瀏覽器。</p>
+  </div>
+  <div class="sheet">
+    <div class="prog">
+      <div class="meter" role="progressbar" aria-label="完成進度" aria-valuemin="0" id="meterWrap"><div class="fill" id="meterFill"></div></div>
+      <span class="lbl num" id="meterLbl">0 / 0</span>
+      <button class="btn ghost" id="resetChk">清除勾選</button>
+    </div>
+    <div id="phases"></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><a href="../">回到報告列表</a></p>
+    <p>本頁內容整理自 Web Security Lab〈Sterling Bank Plc: Breach Technical Analysis〉（2026-04-08，David Odes），原文標示為公開並允許註明出處轉載：<a href="https://websecuritylab.org/sterling-bank-plc-breach-technical-analysis/" target="_blank" rel="noopener">websecuritylab.org</a>。</p>
+    <p>原報告所有技術發現皆來自攻擊者 ByteToBreach 於 DarkForums.su 公開的資料，WSL 未存取 Sterling Bank 任何系統。本頁已省略個人姓名與金鑰完整值。</p>
+  </div>
+</footer>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const toast=(m)=>{const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,1600)};
+async function copy(text){
+  try{await navigator.clipboard.writeText(text);toast('已複製');}
+  catch(e){
+    const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+    let ok=false;try{ok=document.execCommand('copy')}catch(_){}
+    ta.remove();toast(ok?'已複製':'無法存取剪貼簿，請手動選取');
+  }
+}
+
+/* ---------- dwell track ---------- */
+const T0=Date.UTC(2026,2,18), T1=Date.UTC(2026,2,28);
+const pct=t=>((t-T0)/(T1-T0)*100);
+const events=[
+ {t:Date.UTC(2026,2,18,16,49,41),when:'03-18 16:49:41',lbl:'初始存取',lv:0,crit:true,title:'CVE-2025-55182 攻擊成功',body:'攻擊者 206.217.216.145 對 enf-pilot.sterling.ng（196.41.84.199:3034）發動攻擊並取得 shell，身分為容器內的 nextjs 使用者。'},
+ {t:Date.UTC(2026,2,20,0),when:'03-18 至 03-21',lbl:'內網偵察',lv:1,title:'偵察與工具投放',body:'列舉 Kubernetes 環境變數、下載 Swagger 文件、掃描內網、從前端程式包抽出 AES 金鑰，並從 C2 下載自製解密工具。'},
+ {t:Date.UTC(2026,2,22,4,31,35),when:'03-22 04:31:35',lbl:'Sliver 回連',lv:0,crit:true,title:'Sliver C2 首次回連',body:'Session 名稱 ACCESSIBLE_OUTLAY，主機 enf-fe-pilot-6c5c9f48b，以 MTLS 連往 152.32.180.243:443，每 60 秒心跳。'},
+ {t:Date.UTC(2026,2,22,20),when:'03-22 至 03-23',lbl:'員工資料／T24',lv:2,title:'員工 API 列舉與核心銀行 API 濫用',body:'取得員工資料 Dump V1（2,215 筆）與 V2（2,237 筆），開始呼叫 Temenos T24 SOAP API，並在 Tomcat Pod 建立第二個 session DAMP_SHIRT。'},
+ {t:Date.UTC(2026,2,23,3,41,26),when:'03-23 03:41:26',lbl:'徵信查詢',lv:1,crit:true,title:'以 CEO 的 BVN 查詢 CRC 徵信',body:'透過銀行的徵信整合介面取回執行長完整信用檔案，包含 17 個授信帳戶，總曝險逾 ₦2.9 億。'},
+ {t:Date.UTC(2026,2,23,14),when:'03-23',lbl:'帳務外洩／跳轉',lv:0,crit:true,title:'帳戶交易資料外洩，跳轉 Cardinal Stone',body:'取得 T24 帳戶與交易資料（Dump V3、V4，資料日期 3/20–3/23，證明是即時正式資料），同時取得 Cardinal Stone Partners 的 phpMyAdmin 管理權限。'},
+ {t:Date.UTC(2026,2,27,12),when:'03-27',lbl:'暗網公開',lv:0,crit:true,title:'DarkForums.su 公開所有資料',body:'攻擊者發文聲稱取得約 90 萬客戶帳戶與 3,009 筆員工紀錄，並公開全部證據。NDPC 之後於 4 月 5 日宣布調查。'}
+];
+const track=$('#track');
+const blind=document.createElement('div');blind.className='blind';
+blind.style.left=pct(events[0].t)+'%';blind.style.width=(pct(events[6].t)-pct(events[0].t))+'%';track.appendChild(blind);
+[[Date.UTC(2026,2,18,16,49),Date.UTC(2026,2,22)],[Date.UTC(2026,2,22,4),Date.UTC(2026,2,24)]].forEach(([a,b])=>{const s=document.createElement('div');s.className='span';s.style.left=pct(a)+'%';s.style.width=(pct(b)-pct(a))+'%';track.appendChild(s)});
+const axis=document.createElement('div');axis.className='axis';track.appendChild(axis);
+for(let d=18;d<=28;d++){const k=document.createElement('div');k.className='tick';k.style.left=pct(Date.UTC(2026,2,d))+'%';k.textContent=(d===28?'':'3/'+d);if(d<28)track.appendChild(k)}
+const heights=[28,52,74];
+events.forEach((e,i)=>{
+  const b=document.createElement('button');b.className='ev'+(e.crit?' crit':'');b.type='button';b.style.left=pct(e.t)+'%';
+  b.style.top=(heights[e.lv]-22)+'px';
+  b.setAttribute('aria-pressed','false');b.setAttribute('aria-label',e.when+' '+e.title);
+  b.innerHTML='<span class="lbl">'+e.lbl+'</span><span class="stem" style="height:'+(90-heights[e.lv])+'px"></span>';
+  const dot=document.createElement('span');dot.className='dot';b.appendChild(dot);
+  b.addEventListener('click',()=>selectEv(i));
+  track.appendChild(b);e.el=b;
+});
+function selectEv(i){
+  events.forEach((e,j)=>e.el.setAttribute('aria-pressed',String(i===j)));
+  const e=events[i];
+  $('#evDetail').innerHTML='<span class="when">'+e.when+'</span><h3>'+e.title+'</h3><p>'+e.body+'</p>';
+}
+selectEv(0);
+
+/* ---------- kill chain ---------- */
+const stages=[
+ {k:'初始存取',id:'T1190',p:'CVE-2025-55182 是 React 框架（React Server Components，業界俗稱 React2Shell）的未授權遠端程式碼執行漏洞。送出特製請求即可以應用程式身分執行任意系統指令。漏洞在 2026 年 3 月前就已公開並有修補，也已收錄於 NVD。',
+  kv:[['攻擊模組','multi/http/react2shell_unauth_rce_cve_2025_55182'],['目標主機','enf-pilot.sterling.ng'],['攻擊者監聽','206.217.216.145:4444'],['受害端點','196.41.84.199:3034'],['取得身分','nextjs（UID 1001, GID 65533）'],['執行環境','OpenShift Pod，Alpine Linux，Node.js 容器']],
+  call:'<b>三個條件同時成立才會被打進來：</b>弱點版本對外開放、修補未套用、沒有補償控制擋下或偵測。「試營運」標籤不代表風險較低：這台主機有公開 DNS、可路由 IP，而且能連進正式叢集。'},
+ {k:'持久化',id:'T1573.002',p:'攻擊者部署開源 C2 框架 Sliver。MTLS 走 443 埠，在沒有 TLS 解密的網路檢測下看起來就是一般 HTTPS；植入點在容器內，主機型 EDR 若看不到容器工作負載就不會有告警；60 秒心跳也接近正常 keep-alive。',
+  kv:[['Session 1','ACCESSIBLE_OUTLAY @ enf-fe-pilot-6c5c9f48b'],['Session 2','DAMP_SHIRT @ 4c1ce4744c9a（Tomcat Pod）'],['作業系統','Alpine Linux, amd64'],['核心版本','5.14.0-284.82.1.el9_2.x86_64'],['C2 通道','MTLS → 152.32.180.243:443'],['心跳間隔','60 秒'],['首次回連','2026-03-22 04:31:35 UTC']]},
+ {k:'內網偵察',id:'T1087',p:'Kubernetes 會把服務探索資訊以環境變數注入每個 Pod。攻擊者只執行一次 env，就拿到完整的內部服務拓撲，不需要其他工具。接著從叢集內下載 UAM 系統的完整 Swagger 文件（49,512 bytes）。',
+  pre:'STERLING_PRO_V2_PAPPS_TRANSFER_PILOT_SERVICE_HOST=172.27.162.87\nSTERLING_PRO_V2_ACCOUNT_PILOT_PORT_443_TCP_ADDR=172.27.120.72\nONETOKEN_ADMIN_PILOT_PORT=tcp://172.27.94.46:3000\nKUBERNETES_PORT=tcp://172.27.0.1:443\nSTERLINGPROV2_ADMINFRONTEND_PILOT_SERVICE_HOST=172.27.86.161\n\n# 取得的 API 端點（節錄）\n/api/Account/Login            /api/Activity/GetLogs\n/api/Account/OTPValidator     /api/Activity/Export\n/api/Cryption/api/cryption/decryptResponse',
+  call:'<b>防守重點：</b>Pod 內的 env 等同一張內網地圖。可評估關閉 <code>enableServiceLinks</code>，並以 NetworkPolicy 限制 Pod 間連線。'},
+ {k:'加密失效',id:'T1552',p:'攻擊者對 Next.js 伺服器端 chunk 檔做字串搜尋，直接取出 AES 金鑰與 IV。所有用這組金鑰加密的資料，不論過去、現在或未輪替前的未來，攻擊者都能解開。此外還有一個完全不需金鑰的解密端點。',
+  kv:[['金鑰位置','/app/.next/server/chunks/9588.js'],['外洩變數','REACT_APP_ENCRYPTION_KEY、REACT_APP_ENCRYPTION_VECTOR（Base64）'],['解密端點','POST …/api/Cryption/api/cryption/decryptResponse'],['端點行為','送入密文即回傳明文，任何持有的 token 皆被接受']],
+  call:'<b>兩條獨立的解密路徑同時存在：</b>寫死的金鑰，加上一個「解密神諭」API。'},
+ {k:'API 存取控制',id:'T1213',p:'員工查詢 API 沒有速率限制，任何 token 都能逐筆列舉。核心系統 Temenos T24 的 SOAP API 則以權限過大的服務帳號直接呼叫，沒有客戶層級的資料隔離。',
+  kv:[['員工 Dump V1','2,215 筆（UUID、Email、員編、部門、分行、權限、主管）'],['員工 Dump V2','2,237 筆，另含手機號碼'],['users.xlsx','3,009 筆完整 IAM 匯出'],['getAccountFullInfo','帳號、幣別、餘額、BVN、分行'],['getStatement','完整交易明細'],['getActiveLoans','貸款產品、未償餘額、還款條件']],
+  call:'<b>即時正式資料：</b>Dump V3、V4 的交易日期為 3/20–3/23，證明攻擊者讀到的是線上帳務。'},
+ {k:'徵信機構',id:'T1213',p:'銀行系統與 Credit Risk Central（CRC）徵信機構串接，只要輸入 BVN 就回傳完整信用檔案。攻擊者用從環境中取得的憑證，查了執行長的資料。',
+  kv:[['查詢時間','2026-03-23T03:41:26'],['授信帳戶','17 個（Sterling、Polaris Bank）'],['信用評分','10 筆紀錄，736–746'],['總曝險','逾 ₦290,000,000']],
+  call:'<b>產業共通風險：</b>任何有類似徵信串接的銀行或金融科技業者，服務帳號一旦外洩，風險完全相同。任一筆外洩紀錄中的 BVN 就足以查詢。'},
+ {k:'第三方跳轉',id:'T1534',p:'攻擊者從 Sterling Bank 網路跳進關係企業 Cardinal Stone Partners。最可能的原因是兩者共用網段，或 Pod 網路可直接路由到對方主機，與兩家公司的持股關係一致。取得 phpMyAdmin 完整管理權限：可任意下 SQL、瀏覽結構、匯出資料、管理帳號。',
+  kv:[['確認的資料表','clients、corporates、investor_bank_details、shareholder_records、stock_brokers 等 15 張'],['波及機構','FirstPensionCustodian、DiamondPFC、UBAGROUP'],['管理者帳號','具名人員與密碼雜湊（經 LinkedIn 交叉比對）']],
+  call:'<b>隱性信任：</b>關係企業之間的網路連線從未被審視，phpMyAdmin 出現在正式環境本身就是已知的高風險配置。'}
+];
+const tabs=$('#chainTabs'),panels=$('#chainPanels');
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+stages.forEach((s,i)=>{
+  const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.id='tab'+i;b.setAttribute('aria-controls','panel'+i);
+  b.innerHTML='<span>'+(i+1)+' · '+s.id+'</span>'+s.k;b.addEventListener('click',()=>selTab(i));
+  b.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();const n=(i+(e.key==='ArrowRight'?1:-1)+stages.length)%stages.length;selTab(n);tabs.children[n].focus()}});
+  tabs.appendChild(b);
+  const p=document.createElement('div');p.className='stage';p.setAttribute('role','tabpanel');p.id='panel'+i;p.setAttribute('aria-labelledby','tab'+i);p.tabIndex=0;
+  let h='<p>'+s.p+'</p>';
+  if(s.kv)h+='<dl class="kv">'+s.kv.map(([k,v])=>'<dt>'+k+'</dt><dd>'+(/[\/\.:_]/.test(v)&&!/[一-鿿]/.test(v)?'<code>'+esc(v)+'</code>':esc(v))+'</dd>').join('')+'</dl>';
+  if(s.pre)h+='<pre>'+esc(s.pre)+'</pre>';
+  if(s.call)h+='<p class="callout">'+s.call+'</p>';
+  p.innerHTML=h;panels.appendChild(p);
+});
+function selTab(i){[...tabs.children].forEach((b,j)=>{b.setAttribute('aria-selected',String(i===j));b.tabIndex=i===j?0:-1});[...panels.children].forEach((p,j)=>p.hidden=i!==j)}
+selTab(0);
+
+/* ---------- ports ---------- */
+const ports=[
+ [443,93,'HTTPS/TLS','std','標準加密流量。'],
+ [80,59,'HTTP 未加密','med','中：內網流量未加密，可被側錄。'],
+ [4200,4,'Angular 開發伺服器','high','高：正式環境跑開發版，會暴露 source map、關閉安全標頭並開啟除錯端點。'],
+ [1990,4,'未知／舊系統','med','中：未列入資產清冊的服務。'],
+ [3000,2,'Node.js / Express','med','中：可能是管理介面或內部 API。'],
+ [8090,2,'Tomcat 管理','high','高：管理介面曝露。'],
+ [5173,1,'Vite 開發伺服器','crit','嚴重：開發建置工具出現在正式環境，代表 CI/CD 沒有正式建置閘門。'],
+ [9002,1,'未知','med','中：用途不明。'],
+ [9040,1,'未知','med','中：用途不明。']
+];
+const sevName={std:'標準',med:'中',high:'高',crit:'嚴重'};
+const pc=$('#portChart');
+ports.forEach((p,i)=>{
+  const b=document.createElement('button');b.type='button';b.className='port';b.setAttribute('aria-pressed','false');
+  b.setAttribute('aria-label','埠 '+p[0]+'，'+p[1]+' 個，'+p[2]);
+  b.innerHTML='<span class="pn">'+p[0]+'</span><span class="bar-row"><span class="bar '+p[3]+'" style="width:calc('+(p[1]/93*100)+'% - 40px)"></span><span class="c">'+p[1]+'</span></span>';
+  b.addEventListener('click',()=>selPort(i));pc.appendChild(b);
+});
+function selPort(i){[...pc.children].forEach((b,j)=>b.setAttribute('aria-pressed',String(i===j)));const p=ports[i];
+  $('#portNote').innerHTML='<b>'+p[0]+'</b> · '+p[2]+' · '+p[1]+' 個實例　<span class="sev '+(p[3]==='std'?'low':p[3])+'">'+sevName[p[3]]+'</span><br>'+p[4]}
+selPort(6);
+
+/* ---------- IOC ---------- */
+const iocs=[
+ ['206.217.216.145','IPv4','net','攻擊來源與 C2 中繼，也是 dec_brute.js、dec_logs.js 的下載主機'],
+ ['152.32.180.243','IPv4','net','Sliver C2 MTLS 端點（443 埠）'],
+ ['196.41.84.199','IPv4','net','受害主機（試營運環境，初始立足點）'],
+ ['ACCESSIBLE_OUTLAY','Sliver session','host','初始立足點 session，位於 enf-fe-pilot-6c5c9f48b'],
+ ['DAMP_SHIRT','Sliver session','host','第二台受害主機，Tomcat Pod'],
+ ['dec_brute.js','檔名','host','從 C2 下載的自製解密工具'],
+ ['dec_logs.js','檔名','host','從 C2 下載的自製紀錄解密工具'],
+ ['/tmp/dec_brute.js','檔案路徑','host','攻擊者暫存路徑'],
+ ['/tmp/dec_logs.js','檔案路徑','host','攻擊者暫存路徑'],
+ ['/tmp/uam_swagger.json','檔案路徑','host','暫存的 Swagger API 文件'],
+ ['enf-pilot.sterling.ng','主機名稱','dom','初始存取目標'],
+ ['uamapi-prod.apps.non-core-prod.sterlingbank.com','主機名稱','dom','UAM API：解密端點、Swagger、使用者 API'],
+ ['enf-fe-prod-5568f9dbc6-jkc5j','Pod 名稱','dom','正式前端 Pod，橫向移動目標'],
+ ['enf-fe-pilot.apps.non-core-prod.sterlingbank.com','主機名稱','dom','試營運前端 OpenShift route']
+];
+const groups=[['all','全部'],['net','網路'],['host','主機'],['dom','網域與主機名稱']];
+let gSel='all';
+const chips=$('#iocChips');
+groups.forEach(([k,n])=>{const c=document.createElement('button');c.type='button';c.className='chip';c.textContent=n;c.dataset.k=k;c.setAttribute('aria-pressed',String(k===gSel));c.addEventListener('click',()=>{gSel=k;[...chips.children].forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.k===k)));renderIoc()});chips.appendChild(c)});
+const defang=v=>v.replace(/\./g,'[.]');
+function shown(){const q=$('#iocSearch').value.trim().toLowerCase();return iocs.filter(r=>(gSel==='all'||r[2]===gSel)&&(!q||(r[0]+r[3]+r[1]).toLowerCase().includes(q)))}
+function fmt(v){return $('#defang').checked&&!v.startsWith('/')&&v.includes('.')?defang(v):v}
+function renderIoc(){
+  const rows=shown(),body=$('#iocBody');
+  if(!rows.length){body.innerHTML='<tr><td colspan="4" style="color:var(--muted)">沒有符合的指標，請換個關鍵字或類型。</td></tr>';return}
+  body.innerHTML=rows.map((r,i)=>'<tr><td class="v">'+esc(fmt(r[0]))+'</td><td class="typ">'+r[1]+'</td><td>'+r[3]+'</td><td><button class="btn ghost" data-v="'+esc(r[0])+'">複製</button></td></tr>').join('');
+}
+$('#iocBody').addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(b)copy(fmt(b.dataset.v))});
+$('#iocSearch').addEventListener('input',renderIoc);$('#defang').addEventListener('change',renderIoc);
+$('#copyAll').addEventListener('click',()=>{const r=shown();if(!r.length)return toast('目前清單是空的');copy(r.map(x=>fmt(x[0])).join('\n'))});
+renderIoc();
+
+/* ---------- root causes ---------- */
+const causes=[
+ ['對外主機留有未修補 CVE','CVE-2025-55182 早已公開且有修補，但弱點管理流程沒有涵蓋非正式環境。','把試營運、測試、預備環境全數納入弱掃與修補 SLA，以「是否可從網際網路到達」而非「環境名稱」決定優先順序。'],
+ ['正式叢集跑開發版服務','4 個 Angular 開發伺服器（4200 埠）與 1 個 Vite 開發伺服器（5173 埠）在正式叢集執行。','CI/CD 加入部署閘門，偵測到 ng serve、vite dev 等開發模式就阻擋上線。'],
+ ['機密寫在程式碼裡','REACT_APP_ENCRYPTION_KEY 與 VECTOR 被編進 Next.js 程式包。','改用機密管理系統於執行期注入，並以 gitleaks、truffleHog 做 pre-commit 掃描。'],
+ ['API 存取控制失效','員工查詢無速率限制、活動紀錄端點任何 token 可讀、T24 SOAP 沒有客戶層級資料隔離，顯示從未做過 API 安全測試。','所有內部 API 加上速率限制與權限範圍檢查，服務帳號採最小權限。'],
+ ['phpMyAdmin 曝露於關係企業網段','Cardinal Stone 的 phpMyAdmin 可從 Sterling Bank 受害環境直接連到。關係企業之間的隱性網路信任從未被檢視。','盤點所有關係企業與第三方連線，每條連線都要明確授權與分段，資料庫管理介面不得放在正式環境。'],
+ ['加重因素：沒有網路層偵測','從入侵到攻擊者自行公開共 9 天，無任何偵測證據。MTLS 443 心跳未被發現，顯示缺乏出站 TLS 檢查與容器感知的 EDR。','部署容器執行期偵測（Falco、Tetragon 等），並監控叢集對未知外部 IP 的 443 長連線。']
+];
+$('#causes').innerHTML=causes.map((c,i)=>'<details class="cause"'+(i===0?' open':'')+'><summary><span class="n">'+(i<5?(i+1):'+')+'</span><span class="t">'+c[0]+'</span><span class="ar" aria-hidden="true">▶</span></summary><div class="body"><p>'+c[1]+'</p><p><b>對策：</b>'+c[2]+'</p></div></details>').join('');
+
+/* ---------- checklist ---------- */
+const phases=[
+ ['立即處置','當下',[
+  '輪替整個 Kubernetes 叢集的憑證、服務帳號 token 與 API 金鑰',
+  '撤銷並重新發行外洩的 AES 金鑰與 IV，稽核所有 Pod 的 JS 程式包是否還有寫死的機密',
+  '將 enf-pilot.sterling.ng 下線或移到 VPN 後，盤點所有試營運與預備主機的對外曝露',
+  '在邊界與雲端安全群組封鎖 206.217.216.145、152.32.180.243',
+  '啟動事件應變，確認除兩個已知 session 外是否還有其他 Sliver 植入',
+  '通報 NDPC，延遲只會擴大監理風險',
+  '立即關閉 Cardinal Stone 的 phpMyAdmin 並輪替資料庫憑證']],
+ ['短期','30 天內',[
+  '部署容器執行期安全監控（Falco、Tetragon 或同等方案）',
+  '對叢集出站流量做 TLS 檢查，監控連往未知外部 IP 的 443 MTLS',
+  'CI/CD 強制正式建置，阻擋 ng serve、vite dev 等開發模式 Pod 上線',
+  '導入 HashiCorp Vault 等機密管理，搭配 gitleaks、truffleHog pre-commit 掃描',
+  '所有內部 API 加上速率限制與權限範圍檢查',
+  '對 Swagger 文件列出的完整 API 面做有身分驗證的滲透測試',
+  '所有環境（含非正式）修補 CVSS 7.0 以上弱點，建立自動掃描與修補 SLA']],
+ ['策略','90 天內',[
+  '建立威脅情資機制，追蹤與自家技術堆疊相關的 CVE',
+  '建立弱點揭露政策與漏洞獎勵計畫',
+  '委外評估 Temenos T24 API 整合層：授權控制、客戶資料隔離、服務帳號權限',
+  '檢視所有第三方與關係企業網路連線，取消隱性信任',
+  '主動與 NDPC 合作修正計畫，配合度可作為減輕處分的因素']],
+ ['同業自我檢核','可對照自家環境',[
+  '本機構是否使用 React Server Components／Next.js，CVE-2025-55182 是否已全環境修補',
+  '對外 DNS 中帶有 pilot、uat、staging、dev 字樣的主機是否全數納入弱掃',
+  '核心系統 API 的服務帳號是否能查任意客戶資料，有無客戶層級授權',
+  '聯徵或其他徵信串接的呼叫是否有用途限制、查詢量告警與稽核紀錄',
+  '以本頁 IOC 回溯防火牆、Proxy 與 DNS 紀錄']]
+];
+const KEY='sterling-fix-v1';let st={};try{st=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){st={}}
+const ph=$('#phases');let total=0;
+ph.innerHTML=phases.map((p,pi)=>'<div class="phase"><h3>'+p[0]+' <small>'+p[1]+'</small></h3>'+p[2].map((t,ti)=>{total++;const id='c'+pi+'_'+ti;return '<label for="'+id+'"><input type="checkbox" id="'+id+'"'+(st[id]?' checked':'')+'><span>'+t+(pi===3?'<span class="ours">自我檢核</span>':'')+'</span></label>'}).join('')+'</div>').join('');
+$('#meterWrap').setAttribute('aria-valuemax',total);
+function upd(){const n=ph.querySelectorAll('input:checked').length;$('#meterFill').style.width=(n/total*100)+'%';$('#meterLbl').textContent=n+' / '+total;$('#meterWrap').setAttribute('aria-valuenow',n)}
+ph.addEventListener('change',e=>{if(e.target.type!=='checkbox')return;st[e.target.id]=e.target.checked;try{localStorage.setItem(KEY,JSON.stringify(st))}catch(_){};upd()});
+$('#resetChk').addEventListener('click',()=>{st={};try{localStorage.removeItem(KEY)}catch(_){};ph.querySelectorAll('input').forEach(i=>i.checked=false);upd()});
+upd();
+
+/* ---------- nav highlight ---------- */
+const links=[...document.querySelectorAll('#navlinks a')];
+if('IntersectionObserver' in window){
+  const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){links.forEach(l=>l.classList.toggle('on',l.getAttribute('href')==='#'+en.target.id))}})},{rootMargin:'-40% 0px -55% 0px'});
+  document.querySelectorAll('#top,main section').forEach(s=>io.observe(s));
+}
+})();
+</script>
+<style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}</style>
+
+</body>
+</html>
